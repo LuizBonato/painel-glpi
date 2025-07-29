@@ -6,9 +6,10 @@ const app = express();
 app.use(cors());
 
 const PORT = 3001;
-const GLPI_URL = 'http://192.168.1.220/glpi/apirest.php';
-const APP_TOKEN = "vrgKvhpihEzGnJHDgmoq0f6FFNI5UCpA5DglbKnM";
-const USER_TOKEN = "4nZm2MPbQLUczzSoIWHcsgtwNcopN4y1StZ6YVht";
+const API_URL = import.meta.env.VITE_GLPI_API_URL;
+const APP_TOKEN = import.meta.env.VITE_GLPI_APP_TOKEN;
+const USER_TOKEN = import.meta.env.VITE_GLPI_USER_TOKEN;
+
 
 interface ChamadoGLPI {
   id: number;
