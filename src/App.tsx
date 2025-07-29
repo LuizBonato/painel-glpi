@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Ticket } from './types/ticket';
-import { mockTickets } from './data/mockTickets';
 import { StatsCards } from './components/StatsCards';
 import { FilterBar } from './components/FilterBar';
 import { ViewToggle } from './components/ViewToggle';
@@ -10,7 +9,7 @@ import { Pagination } from './components/Pagination';
 import { Settings, RefreshCw } from 'lucide-react';
 
 function App() {
-  const [tickets] = useState<Ticket[]>(mockTickets);
+const [chamados, setChamados] = useState<Chamado[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
@@ -18,7 +17,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
   const [view, setView] = useState<'table' | 'cards'>('table');
-  const [sortField, setSortField] = useState<keyof Ticket | null>(null);
+  const [sortField, setSortField] = useState<keyof chamados | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const filteredTickets = useMemo(() => {
