@@ -37,7 +37,7 @@ export const TicketBadge: React.FC<TicketBadgeProps> = ({ type, value, slaExpire
     }
   };
 
-  const getSlaColor = (sla: string, expired: boolean) => {
+  const getSlaColor = (_sla: string, expired: boolean) => {
     if (expired) {
       return 'bg-red-100 text-red-800 border-red-200';
     }

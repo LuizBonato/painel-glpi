@@ -1,71 +1,69 @@
-import express from 'express';
+// Importa o axios para requisições HTTP
 import axios from 'axios';
-import cors from 'cors';
+// Importa dotenv e carrega as variáveis do arquivo .env
+import dotenv from 'dotenv';
+dotenv.config();
 
-const app = express();
-app.use(cors());
-
-const PORT = 3001;
-const API_URL = import.meta.env.VITE_GLPI_API_URL;
+// Pega os valores do .env com fallback para evitar erros
+const GLPI_URL = import.meta.env.VITE_GLPI_API_URL;
 const APP_TOKEN = import.meta.env.VITE_GLPI_APP_TOKEN;
 const USER_TOKEN = import.meta.env.VITE_GLPI_USER_TOKEN;
 
-
-interface ChamadoGLPI {
-  id: number;
-  name: string;
-  content?: string;
-  date_creation: string;
-  status: number;
-  users_id_recipient: number;
-  users_id_lastupdater: number;
-}
-
-function decodeHTMLEntities(text: string): string {
-  return text.replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(Number(dec)))
-             .replace(/&lt;/g, "<")
-             .replace(/&gt;/g, ">")
-             .replace(/&quot;/g, '"')
-             .replace(/&amp;/g, "&");
-}
-
-app.get('/chamados', async (req, res) => {
+// Inicia uma sessão no GLPI e retorna o token de sessão
+export async function iniciarSessao() {
   try {
-    const session = await axios.post(`${GLPI_URL}/initSession`, null, {
+    const resposta = await axios.post(`${GLPI_URL}/initSession`, null, {
       headers: {
-        'Authorization': `user_token ${USER_TOKEN}`,
-        'App-Token': APP_TOKEN
+        'App-Token': APP_TOKEN,
+        'Authorization': `user_token ${USER_TOKEN}`
       }
     });
 
-    const sessionToken = (session.data as { session_token: string }).session_token;
-
-    const response = await axios.get(`${GLPI_URL}/Ticket`, {
-      headers: {
-        'Session-Token': sessionToken,
-        'App-Token': APP_TOKEN
-      }
-    });
-
-    const rawChamados = response.data as ChamadoGLPI[];
-
-    const chamados = rawChamados.map((chamado) => ({
-      id: chamado.id,
-      titulo: chamado.name,
-      descricao: decodeHTMLEntities(chamado.content ?? ''),
-      data_criacao: chamado.date_creation,
-      status: chamado.status,
-      solicitante: chamado.users_id_recipient,
-      tecnico: chamado.users_id_lastupdater
-    }));
-
-    res.json(chamados);
-  } catch (error) {
-    console.error('Erro ao buscar chamados:', error);
-    res.status(500).send('Erro ao buscar chamados');
+    const { session_token } = resposta.data as { session_token: string };
+    return session_token;
+  } catch (erro) {
+    console.error('Erro ao iniciar sessão:', erro);
+    throw erro;
   }
-});
+}
 
-app.listen(PORT, () => {
-  console.log(`Servidor local rodando: http://localhost:${PORT}/chamados`);
-});
+// Função para encerrar a sessão (opcional)
+export async function encerrarSessao(sessionToken: string) {
+  try {
+    await axios.get(`${GLPI_URL}/killSession`, {
+      headers: {
+        'App-Token': APP_TOKEN,
+        'Session-Token': sessionToken
+      }
+    });
+  } catch (erro) {
+    console.error('Erro ao encerrar sessão:', erro);
+  }
+}
+
+// Consulta chamados com status e filtro de categoria
+export async function buscarChamados(status: number) {
+  const sessionToken = await iniciarSessao();
+
+  try {
+    const resposta = await axios.get(`${GLPI_URL}/Ticket`, {
+      headers: {
+        'App-Token': APP_TOKEN,
+        'Session-Token': sessionToken
+      },
+      params: {
+        // status 1 = Novo, 2 = Em andamento
+        is_deleted: 0,
+        // Filtro para categorias que contenham 'sistemas' ou 'infraestrutura'
+        searchText: 'sistemas infraestrutura'
+      }
+    });
+
+    return resposta.data;
+  } catch (erro) {
+    console.error('Erro ao buscar chamados:', erro);
+    throw erro;
+  } finally {
+    await encerrarSessao(sessionToken);
+  }
+}

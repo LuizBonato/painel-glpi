@@ -9,7 +9,7 @@ import { Pagination } from './components/Pagination';
 import { Settings, RefreshCw } from 'lucide-react';
 
 function App() {
-const [chamados, setChamados] = useState<Chamado[]>([]);
+const [tickets, setTickets] = useState<Ticket[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
@@ -17,7 +17,7 @@ const [chamados, setChamados] = useState<Chamado[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
   const [view, setView] = useState<'table' | 'cards'>('table');
-  const [sortField, setSortField] = useState<keyof chamados | null>(null);
+  const [sortField, setSortField] = useState<keyof Ticket | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const filteredTickets = useMemo(() => {
